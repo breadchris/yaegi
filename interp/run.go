@@ -1951,7 +1951,8 @@ func getFunc(n *node) {
 			}
 
 			// Interpreter code execution.
-			runCfg(n.child[3].start, fr2, n, n)
+			callHandle := n.interp.addCall(n)
+			runCfg(callHandle, n.child[3].start, fr2, n, n)
 
 			f.mutex.Lock()
 			getFrame(f, l).data[i] = o

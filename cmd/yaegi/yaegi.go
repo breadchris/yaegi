@@ -102,7 +102,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/traefik/yaegi/interp"
+	"github.com/breadchris/yaegi/interp"
 )
 
 const (

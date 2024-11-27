@@ -223,7 +223,7 @@ type Interpreter struct {
 
 const (
 	mainID     = "main"
-	selfPrefix = "github.com/traefik/yaegi"
+	selfPrefix = "github.com/breadchris/yaegi"
 	selfPath   = selfPrefix + "/interp/interp"
 	// DefaultSourceName is the name used by default when the name of the input
 	// source file has not been specified for an Eval.

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"testing/fstest" // only available from 1.16.
 
-	"github.com/traefik/yaegi/interp"
-	"github.com/traefik/yaegi/stdlib"
+	"github.com/breadchris/yaegi/interp"
+	"github.com/breadchris/yaegi/stdlib"
 )
 
 var testFilesystem = fstest.MapFS{
