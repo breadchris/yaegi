@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/build"
 	"io/fs"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -196,16 +197,9 @@ func (interp *Interpreter) rootFromSourceLocation(rPath string) (string, error) 
 	if sourceFile == DefaultSourceName || !strings.HasSuffix(sourceFile, ".go") {
 		return rPath, nil
 	}
-
-	_, isRealFS := interp.opt.filesystem.(*realFS)
-	if isRealFS {
-		// In the "real" FS, GOPATH will be an absolute path, so we need to convert
-		// the source file to an absolute path to compare them.
-		absPath, err := filepath.Abs(filepath.FromSlash(sourceFile))
-		if err != nil {
-			return "", err
-		}
-		sourceFile = filepath.ToSlash(absPath)
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
 	}
 	pkgDir := filepath.Join(wd, filepath.Dir(sourceFile))
 	root := strings.TrimPrefix(pkgDir, filepath.Join(interp.context.GOPATH, "src")+"/")
