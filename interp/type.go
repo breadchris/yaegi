@@ -3,7 +3,7 @@ package interp
 import (
 	"fmt"
 	"go/constant"
-	"path/filepath"
+	"path"
 	"reflect"
 	"strconv"
 	"strings"
@@ -779,8 +779,8 @@ func nodeType2(interp *Interpreter, sc *scope, n *node, seen []*node) (t *itype,
 		sym, _, found := sc.lookup(n.ident)
 		if !found {
 			// retry with the filename, in case ident is a package name.
-			baseName := filepath.Base(interp.fset.Position(n.pos).Filename)
-			ident := filepath.Join(n.ident, baseName)
+			baseName := path.Base(interp.fset.Position(n.pos).Filename)
+			ident := path.Join(n.ident, baseName)
 			sym, _, found = sc.lookup(ident)
 			if !found {
 				t = &itype{name: n.ident, path: sc.pkgName, node: n, incomplete: true, scope: sc}
@@ -975,7 +975,8 @@ func nodeType2(interp *Interpreter, sc *scope, n *node, seen []*node) (t *itype,
 			}
 		}
 
-		if lt.incomplete {
+		if lt.incomplete { // note: per #1700 this results in a nil type with no err
+			// but TestIssue1388 for #1388 triggers this, so not changing here.
 			break
 		}
 		name := n.child[1].ident
@@ -1118,6 +1119,7 @@ func nodeType2(interp *Interpreter, sc *scope, n *node, seen []*node) (t *itype,
 
 	switch {
 	case t == nil:
+		err = n.cfgErrorf("nil type (could be trying to use a generic type constraint interface?): %s", n.kind)
 	case t.name != "" && t.path != "":
 		t.str = t.path + "." + t.name
 	case t.cat == nilT:
@@ -1189,8 +1191,8 @@ func findPackageType(interp *Interpreter, sc *scope, n *node) *itype {
 		sc = sc.anc
 	}
 
-	baseName := filepath.Base(interp.fset.Position(n.pos).Filename)
-	sym, _, found := sc.lookup(filepath.Join(n.ident, baseName))
+	baseName := path.Base(interp.fset.Position(n.pos).Filename)
+	sym, _, found := sc.lookup(path.Join(n.ident, baseName))
 	if !found || sym.typ == nil && sym.typ.cat != srcPkgT && sym.typ.cat != binPkgT {
 		return nil
 	}
@@ -1714,10 +1716,7 @@ func (t *itype) fieldIndex(name string) int {
 func (t *itype) fieldSeq(seq []int) *itype {
 	ft := t
 	for _, i := range seq {
-		if ft.cat == ptrT {
-			ft = ft.val
-		}
-		ft = ft.field[i].typ
+		ft = baseType(ft).field[i].typ
 	}
 	return ft
 }
